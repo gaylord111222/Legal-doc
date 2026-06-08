@@ -1,1 +1,436 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Văn Bản Pháp Luật</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e0e0e0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOP NAV */
+    nav {
+      background: #1a1d27;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid #2a2d3a;
+    }
+    nav h1 { font-size: 18px; color: #ffffff; flex: 1; }
+    nav button {
+      background: none;
+      border: 1px solid #3a3d4a;
+      color: #aaa;
+      padding: 7px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    nav button.active, nav button:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #fff;
+    }
+
+    /* MAIN PANELS */
+    .panel { display: none; flex: 1; overflow: hidden; }
+    .panel.active { display: flex; flex-direction: column; }
+
+    /* DOCUMENTS PANEL */
+    #panel-docs {
+      flex-direction: row;
+    }
+    .doc-sidebar {
+      width: 300px;
+      background: #1a1d27;
+      border-right: 1px solid #2a2d3a;
+      display: flex;
+      flex-direction: column;
+    }
+    .doc-sidebar-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid #2a2d3a;
+      font-size: 13px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .doc-list { overflow-y: auto; flex: 1; }
+    .doc-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #22253a;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .doc-item:hover { background: #22253a; }
+    .doc-item.selected { background: #1e3a5f; border-left: 3px solid #2563eb; }
+    .doc-item .doc-title { font-size: 13px; color: #ddd; margin-bottom: 4px; }
+    .doc-item .doc-meta { font-size: 11px; color: #666; }
+    .doc-item .doc-tag {
+      display: inline-block;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      margin-top: 5px;
+      background: #1e3a5f;
+      color: #60a5fa;
+    }
+
+    .doc-viewer {
+      flex: 1;
+      padding: 32px;
+      overflow-y: auto;
+      background: #13161f;
+    }
+    .doc-viewer h2 { font-size: 20px; color: #fff; margin-bottom: 8px; }
+    .doc-viewer .meta { font-size: 13px; color: #666; margin-bottom: 24px; }
+    .doc-viewer .body-text {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #ccc;
+      max-width: 720px;
+    }
+    .empty-state {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      color: #444;
+    }
+    .empty-state .icon { font-size: 48px; }
+
+    /* MINDMAP PANEL */
+    #panel-map {
+      align-items: center;
+      justify-content: center;
+      background: #13161f;
+    }
+    #panel-map .coming-soon {
+      text-align: center;
+      color: #555;
+    }
+    #panel-map .coming-soon .icon { font-size: 56px; margin-bottom: 16px; }
+    #panel-map .coming-soon p { font-size: 16px; }
+    #panel-map .coming-soon span { font-size: 13px; color: #444; }
+
+    /* CHAT PANEL */
+    #panel-chat {
+      background: #13161f;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .msg {
+      max-width: 680px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .msg.user {
+      background: #1e3a5f;
+      color: #e0e0e0;
+      align-self: flex-end;
+    }
+    .msg.ai {
+      background: #1a1d27;
+      color: #ddd;
+      align-self: flex-start;
+      border: 1px solid #2a2d3a;
+    }
+    .msg.ai .label {
+      font-size: 11px;
+      color: #2563eb;
+      margin-bottom: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .chat-input-bar {
+      padding: 16px 24px;
+      border-top: 1px solid #2a2d3a;
+      display: flex;
+      gap: 10px;
+      background: #1a1d27;
+    }
+    .chat-input-bar input {
+      flex: 1;
+      background: #0f1117;
+      border: 1px solid #2a2d3a;
+      color: #eee;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    .chat-input-bar input:focus { border-color: #2563eb; }
+    .chat-input-bar button {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    .chat-input-bar button:hover { background: #1d4ed8; }
+    .chat-input-bar button:disabled { background: #333; cursor: not-allowed; }
+
+    .api-key-bar {
+      padding: 10px 24px;
+      background: #1a1d27;
+      border-bottom: 1px solid #2a2d3a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #888;
+    }
+    .api-key-bar input {
+      flex: 1;
+      max-width: 340px;
+      background: #0f1117;
+      border: 1px solid #2a2d3a;
+      color: #eee;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+    .api-key-bar input:focus { border-color: #2563eb; }
+    .api-status { font-size: 12px; }
+    .api-status.ok { color: #22c55e; }
+    .api-status.err { color: #ef4444; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <h1>⚖️ Văn Bản Pháp Luật</h1>
+  <button class="active" onclick="switchPanel('docs')">📄 Văn Bản</button>
+  <button onclick="switchPanel('map')">🕸️ Sơ Đồ</button>
+  <button onclick="switchPanel('chat')">🤖 Trợ Lý AI</button>
+</nav>
+
+<!-- DOCUMENTS PANEL -->
+<div id="panel-docs" class="panel active">
+  <div class="doc-sidebar">
+    <div class="doc-sidebar-header">Danh sách văn bản</div>
+    <div class="doc-list" id="docList"></div>
+  </div>
+  <div class="doc-viewer" id="docViewer">
+    <div class="empty-state">
+      <div class="icon">📂</div>
+      <p>Chọn một văn bản để xem</p>
+    </div>
+  </div>
+</div>
+
+<!-- MINDMAP PANEL -->
+<div id="panel-map" class="panel">
+  <div class="coming-soon">
+    <div class="icon">🕸️</div>
+    <p>Sơ đồ liên kết văn bản</p>
+    <span>Sẽ được xây dựng ở bước tiếp theo</span>
+  </div>
+</div>
+
+<!-- CHAT PANEL -->
+<div id="panel-chat" class="panel">
+  <div class="api-key-bar">
+    🔑 Claude API Key:
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-..." oninput="saveKey()" />
+    <span class="api-status" id="apiStatus"></span>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="msg ai">
+      <div class="label">Trợ Lý AI</div>
+      Xin chào! Tôi có thể giúp bạn tra cứu, giải thích và so sánh các văn bản pháp luật. Hãy đặt câu hỏi!
+    </div>
+  </div>
+  <div class="chat-input-bar">
+    <input type="text" id="chatInput" placeholder="Đặt câu hỏi về văn bản pháp luật..." onkeydown="if(event.key==='Enter') sendMessage()" />
+    <button onclick="sendMessage()" id="sendBtn">Gửi</button>
+  </div>
+</div>
+
+<script>
+  // ── SAMPLE DATA (will be replaced by auto-downloaded docs later) ──
+  const docs = [
+    {
+      id: 1,
+      title: "Nghị định 13/2023/NĐ-CP",
+      date: "17/04/2023",
+      topic: "Bảo vệ dữ liệu cá nhân",
+      tags: ["Dữ liệu", "CNTT"],
+      body: "Nghị định này quy định về bảo vệ dữ liệu cá nhân và trách nhiệm bảo vệ dữ liệu cá nhân của cơ quan, tổ chức, cá nhân có liên quan. Áp dụng đối với cơ quan, tổ chức, cá nhân Việt Nam; cơ quan, tổ chức, cá nhân nước ngoài trực tiếp tham gia hoặc có liên quan đến hoạt động xử lý dữ liệu cá nhân tại Việt Nam.",
+      refs: [2]
+    },
+    {
+      id: 2,
+      title: "Luật An ninh mạng 2018",
+      date: "12/06/2018",
+      topic: "An ninh mạng",
+      tags: ["An ninh", "CNTT"],
+      body: "Luật này quy định về hoạt động bảo vệ an ninh quốc gia và bảo đảm trật tự, an toàn xã hội trên không gian mạng; trách nhiệm của cơ quan, tổ chức, cá nhân có liên quan.",
+      refs: [1]
+    },
+    {
+      id: 3,
+      title: "Thông tư 09/2023/TT-NHNN",
+      date: "28/07/2023",
+      topic: "Ngân hàng số",
+      tags: ["Tài chính", "Ngân hàng"],
+      body: "Thông tư quy định về an toàn hệ thống thông tin trong hoạt động ngân hàng, bao gồm các tiêu chuẩn kỹ thuật và quy trình quản lý rủi ro công nghệ thông tin.",
+      refs: []
+    }
+  ];
+
+  let selectedDoc = null;
+
+  // ── RENDER DOC LIST ──
+  function renderDocs() {
+    const list = document.getElementById('docList');
+    list.innerHTML = docs.map(d => `
+      <div class="doc-item ${selectedDoc === d.id ? 'selected' : ''}" onclick="selectDoc(${d.id})">
+        <div class="doc-title">${d.title}</div>
+        <div class="doc-meta">${d.date} · ${d.topic}</div>
+        ${d.tags.map(t => `<span class="doc-tag">${t}</span>`).join(' ')}
+      </div>
+    `).join('');
+  }
+
+  function selectDoc(id) {
+    selectedDoc = id;
+    const doc = docs.find(d => d.id === id);
+    const viewer = document.getElementById('docViewer');
+    const refs = doc.refs.map(r => {
+      const ref = docs.find(d => d.id === r);
+      return ref ? `<a href="#" onclick="selectDoc(${r});return false;" style="color:#60a5fa">${ref.title}</a>` : '';
+    }).filter(Boolean).join(', ');
+
+    viewer.innerHTML = `
+      <h2>${doc.title}</h2>
+      <div class="meta">📅 ${doc.date} &nbsp;|&nbsp; 🏷️ ${doc.topic}</div>
+      <div class="body-text">
+        ${doc.body}
+        ${refs ? `<br><br><strong style="color:#888">Văn bản liên quan:</strong> ${refs}` : ''}
+      </div>
+    `;
+    renderDocs();
+  }
+
+  // ── PANEL SWITCH ──
+  function switchPanel(name) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  // ── API KEY ──
+  function saveKey() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    localStorage.setItem('claude_key', key);
+    document.getElementById('apiStatus').textContent = key.startsWith('sk-ant-') ? '✓ Key đã lưu' : '';
+    document.getElementById('apiStatus').className = 'api-status ' + (key.startsWith('gsk_') ? 'ok' : 'err');
+  }
+
+  window.addEventListener('load', () => {
+    const saved = localStorage.getItem('claude_key');
+    if (saved) {
+      document.getElementById('apiKeyInput').value = saved;
+      saveKey();
+    }
+    renderDocs();
+  });
+
+  // ── CHAT ──
+  async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    const key = localStorage.getItem('claude_key');
+    if (!key) {
+      addMsg('ai', 'Vui lòng nhập Claude API Key ở thanh trên trước nhé!');
+      return;
+    }
+
+    addMsg('user', msg);
+    input.value = '';
+    document.getElementById('sendBtn').disabled = true;
+    addMsg('ai', '⏳ Đang xử lý...', 'loading');
+
+    const docContext = docs.map(d =>
+      `[${d.title}] (${d.date}): ${d.body}`
+    ).join('\n\n');
+
+    try {
+     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${key}`
+},
+       body: JSON.stringify({
+  model: 'llama-3.3-70b-versatile',
+  max_tokens: 1000,
+  messages: [
+    { role: 'system', content: `Bạn là trợ lý pháp luật Việt Nam. Trả lời bằng tiếng Việt, ngắn gọn và chính xác.\nDưới đây là các văn bản pháp luật hiện có trong hệ thống:\n\n${docContext}` },
+    { role: 'user', content: msg }
+  ]
+})
+      });
+
+      const data = await res.json();
+      removeLoading();
+
+      if (data.choices && data.choices[0]) {
+  addMsg('ai', data.choices[0].message.content);
+      } else {
+        addMsg('ai', '❌ Lỗi: ' + (data.error?.message || 'Không nhận được phản hồi.'));
+      }
+    } catch (e) {
+      removeLoading();
+      addMsg('ai', '❌ Không thể kết nối. Kiểm tra kết nối internet và API key.');
+    }
+
+    document.getElementById('sendBtn').disabled = false;
+  }
+
+  function addMsg(role, text, id) {
+    const box = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'msg ' + role;
+    if (id) div.id = id;
+    if (role === 'ai') div.innerHTML = `<div class="label">Trợ Lý AI</div>${text}`;
+    else div.textContent = text;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function removeLoading() {
+    const el = document.getElementById('loading');
+    if (el) el.remove();
+  }
+</script>
+</body>
+</html>
